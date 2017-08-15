@@ -1,336 +1,156 @@
-# cordova-plugin-firebase
-This plugin brings push notifications, analytics, event tracking, crash reporting and more from Google Firebase to your Cordova project!
-Android and iOS supported.
+# Google Firebase Cloud Messaging Cordova Push Plugin
+> Extremely easy plug&play push notification plugin for Cordova applications with Google Firebase FCM.
+
+>[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=VF654BMGUPQTJ)
+
+#### Version 2.1.2 (03/06/2017)
+- Tested on Android and iOS using Cordova cli 6.4.0, Cordova android 6.0.0 and Cordova ios 4.3.1
+- Available sdk functions: onTokenRefresh, getToken, subscribeToTopic, unsubscribeFromTopic and onNotification
+- 'google-services.json' and 'GoogleService-Info.plist' are added automatically from Cordova project root to platform folders
+- Added data payload parameter to check whether the user tapped on the notification or was received while in foreground.
+- **Free testing server available for free! https://cordova-plugin-fcm.appspot.com**
 
 ## Installation
-See npm package for versions - https://www.npmjs.com/package/cordova-plugin-firebase
-
-Install the plugin by adding it your project's config.xml:
-```
-<plugin name="cordova-plugin-firebase" spec="0.1.23" />
-```
-or by running:
-```
-cordova plugin add cordova-plugin-firebase@0.1.23 --save
-```
-Download your Firebase configuration files, GoogleService-Info.plist for ios and google-services.json for android, and place them in the root folder of your cordova project:
+Make sure you have ‘google-services.json’ for Android or  ‘GoogleService-Info.plist’ for iOS in your Cordova project root folder. You don´t need to configure anything else in order to have push notification working for both platforms, everything is magic.
+```Bash
+cordova plugin add cordova-plugin-fcm
 
 ```
-- My Project/
-    platforms/
-    plugins/
-    www/
-    config.xml
-    google-services.json       <--
-    GoogleService-Info.plist   <--
-    ...
-```
 
-See https://support.google.com/firebase/answer/7015592 for details how to download the files from firebase.
+#### Firebase configuration files
+Get the needed configuration files for Android or iOS from the Firebase Console (see docs: https://firebase.google.com/docs/).
 
-This plugin uses a hook (after prepare) that copies the configuration files to the right place, namely platforms/ios/\<My Project\>/Resources for ios and platforms/android for android.
+#### Android compilation details
+Put the downloaded file 'google-services.json' in the Cordova project root folder.
 
-**Note that the Firebase SDK requires the configuration files to be present and valid, otherwise your app will crash on boot or Firebase features won't work.**
-
-## Changing Notification Icon
-The plugin will use notification_icon from drawable resources if it exists, otherwise the default app icon will is used.
-To set a big icon and small icon for notifications, define them through drawable nodes.  
-Create the required styles.xml files and add the icons to the  
-`<projectroot>/res/native/android/res/<drawable-DPI>` folders.  
-
-The example below uses a png named "ic_silhouette.png", the app Icon (@mipmap/icon) and sets a base theme.  
-From android version 21 (Lollipop) notifications were changed, needing a seperate setting.  
-If you only target Lollipop and above, you don't need to setup both.  
-Thankfully using the version dependant asset selections, we can make one build/apk supporting all target platforms.  
-`<projectroot>/res/native/android/res/values/styles.xml`
-```
-<?xml version="1.0" encoding="utf-8" ?>
-<resources>
-    <!-- inherit from the holo theme -->
-    <style name="AppTheme" parent="android:Theme.Light">
-        <item name="android:windowDisablePreview">true</item>
-    </style>
-    <drawable name="notification_big">@mipmap/icon</drawable>
-    <drawable name="notification_icon">@mipmap/icon</drawable>
-</resources>
-```
-and  
-`<projectroot>/res/native/android/res/values-v21/styles.xml`
-```
-<?xml version="1.0" encoding="utf-8" ?>
-<resources>
-    <!-- inherit from the material theme -->
-    <style name="AppTheme" parent="android:Theme.Material">
-        <item name="android:windowDisablePreview">true</item>
-    </style>
-    <drawable name="notification_big">@mipmap/icon</drawable>
-    <drawable name="notification_icon">@drawable/ic_silhouette</drawable>
-</resources>
-```
-
-## Notification Colors
-
-On Android Lollipop and above you can also set the accent color for the notification by adding a color setting.
-
-`<projectroot>/res/native/android/res/values/colors.xml`
-```
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="primary">#FFFFFF00</color>
-    <color name="primary_dark">#FF220022</color>
-    <color name="accent">#FF00FFFF</color>
-</resources>
-```
+You will need to ensure that you have installed the appropiate Android SDK libraries.
 
 
-### Notes about PhoneGap Build
+:warning: For Android >5.0 status bar icon, you must include transparent solid color icon with name 'fcm_push_icon.png' in the 'res' folder in the same way you add the other application icons.
+If you do not set this resource, then the SDK will use the default icon for your app which may not meet the standards for Android >5.0.
 
-Hooks does not work with PhoneGap Build. This means you will have to manually make sure the configuration files are included. One way to do that is to make a private fork of this plugin and replace the placeholder config files (see src/ios and src/android) with your actual ones, as well as hard coding your app id and api key in plugin.xml.
+#### iOS compilation details
+Put the downloaded file 'GoogleService-Info.plist' in the Cordova project root folder.
 
+## Usage
 
-## Methods
+:warning: It's highly recommended to use REST API to send push notifications because Firebase console does not have all the functionalities. **Pay attention to the payload example in order to use the plugin properly**.  
+You can also test your notifications with the free testing server: https://cordova-plugin-fcm.appspot.com
 
-### getToken
+#### Receiving Token Refresh
 
-Get the device token (id):
-```
-window.FirebasePlugin.getToken(function(token) {
-    // save this server-side and use it to push notifications to this device
-    console.log(token);
-}, function(error) {
-    console.error(error);
-});
-```
-Note that token will be null if it has not been established yet
-
-### onTokenRefresh
-
-Register for token changes:
-```
-window.FirebasePlugin.onTokenRefresh(function(token) {
-    // save this server-side and use it to push notifications to this device
-    console.log(token);
-}, function(error) {
-    console.error(error);
-});
-```
-This is the best way to get a valid token for the device as soon as the token is established
-
-### onNotificationOpen
-
-Register notification callback:
-```
-window.FirebasePlugin.onNotificationOpen(function(notification) {
-    console.log(notification);
-}, function(error) {
-    console.error(error);
-});
-```
-Notification flow:
-
-1. App is in foreground:
-    1. User receives the notification data in the JavaScript callback without any notification on the device itself (this is the normal behaviour of push notifications, it is up to you, the developer, to notify the user)
-2. App is in background:
-    1. User receives the notification message in its device notification bar
-    2. User taps the notification and the app opens
-    3. User receives the notification data in the JavaScript callback
-
-Notification icon on Android:
-
-[Changing notification icon](#changing-notification-icon)
-
-### grantPermission (iOS only)
-
-Grant permission to recieve push notifications (will trigger prompt):
-```
-window.FirebasePlugin.grantPermission();
-```
-### hasPermission
-
-Check permission to recieve push notifications:
-```
-window.FirebasePlugin.hasPermission(function(data){
-    console.log(data.isEnabled);
+```javascript
+//FCMPlugin.onTokenRefresh( onTokenRefreshCallback(token) );
+//Note that this callback will be fired everytime a new token is generated, including the first time.
+FCMPlugin.onTokenRefresh(function(token){
+    alert( token );
 });
 ```
 
-### setBadgeNumber
+#### Get token
 
-Set a number on the icon badge:
-```
-window.FirebasePlugin.setBadgeNumber(3);
-```
-
-Set 0 to clear the badge
-```
-window.FirebasePlugin.setBadgeNumber(0);
-```
-
-### getBadgeNumber
-
-Get icon badge number:
-```
-window.FirebasePlugin.getBadgeNumber(function(n) {
-    console.log(n);
+```javascript
+//FCMPlugin.getToken( successCallback(token), errorCallback(err) );
+//Keep in mind the function will return null if the token has not been established yet.
+FCMPlugin.getToken(function(token){
+    alert(token);
 });
 ```
 
-### subscribe
+#### Subscribe to topic
 
-Subscribe to a topic:
-```
-window.FirebasePlugin.subscribe("example");
-```
-
-### unsubscribe
-
-Unsubscribe from a topic:
-```
-window.FirebasePlugin.unsubscribe("example");
+```javascript
+//FCMPlugin.subscribeToTopic( topic, successCallback(msg), errorCallback(err) );
+//All devices are subscribed automatically to 'all' and 'ios' or 'android' topic respectively.
+//Must match the following regular expression: "[a-zA-Z0-9-_.~%]{1,900}".
+FCMPlugin.subscribeToTopic('topicExample');
 ```
 
-### unregister
+#### Unsubscribe from topic
 
-Unregister from firebase, used to stop receiving push notifications. Call this when you logout user from your app. :
-```
-window.FirebasePlugin.unregister();
-```
-
-### logEvent
-
-Log an event using Analytics:
-```
-window.FirebasePlugin.logEvent("select_content", {content_type: "page_view", item_id: "home"});
+```javascript
+//FCMPlugin.unsubscribeFromTopic( topic, successCallback(msg), errorCallback(err) );
+FCMPlugin.unsubscribeFromTopic('topicExample');
 ```
 
-### setScreenName
+#### Receiving push notification data
 
-Set the name of the current screen in Analytics:
-```
-window.FirebasePlugin.setScreenName("Home");
-```
-
-### setUserId
-
-Set a user id for use in Analytics:
-```
-window.FirebasePlugin.setUserId("user_id");
-```
-
-### setUserProperty
-
-Set a user property for use in Analytics:
-```
-window.FirebasePlugin.setUserProperty("name", "value");
-```
-
-### fetch
-
-Fetch Remote Config parameter values for your app:
-```
-window.FirebasePlugin.fetch();
-// or, specify the cacheExpirationSeconds
-window.FirebasePlugin.fetch(600);
-```
-
-### activateFetched
-
-Activate the Remote Config fetched config:
-```
-window.FirebasePlugin.activateFetched(function(activated) {
-    // activated will be true if there was a fetched config activated,
-    // or false if no fetched config was found, or the fetched config was already activated.
-    console.log(activated);
-}, function(error) {
-    console.error(error);
+```javascript
+//FCMPlugin.onNotification( onNotificationCallback(data), successCallback(msg), errorCallback(err) )
+//Here you define your application behaviour based on the notification data.
+FCMPlugin.onNotification(function(data){
+    if(data.wasTapped){
+      //Notification was received on device tray and tapped by the user.
+      alert( JSON.stringify(data) );
+    }else{
+      //Notification was received in foreground. Maybe the user needs to be notified.
+      alert( JSON.stringify(data) );
+    }
 });
 ```
 
-### getValue
-
-Retrieve a Remote Config value:
-```
-window.FirebasePlugin.getValue("key", function(value) {
-    console.log(value);
-}, function(error) {
-    console.error(error);
-});
-// or, specify a namespace for the config value
-window.FirebasePlugin.getValue("key", "namespace", function(value) {
-    console.log(value);
-}, function(error) {
-    console.error(error);
-});
-```
-
-### getByteArray (Android only)
-**NOTE: byte array is only available for SDK 19+**
-Retrieve a Remote Config byte array:
-```
-window.FirebasePlugin.getByteArray("key", function(bytes) {
-    // a Base64 encoded string that represents the value for "key"
-    console.log(bytes.base64);
-    // a numeric array containing the values of the byte array (i.e. [0xFF, 0x00])
-    console.log(bytes.array);
-}, function(error) {
-    console.error(error);
-});
-// or, specify a namespace for the byte array
-window.FirebasePlugin.getByteArray("key", "namespace", function(bytes) {
-    // a Base64 encoded string that represents the value for "key"
-    console.log(bytes.base64);
-    // a numeric array containing the values of the byte array (i.e. [0xFF, 0x00])
-    console.log(bytes.array);
-}, function(error) {
-    console.error(error);
-});
-```
-
-### getInfo (Android only)
-
-Get the current state of the FirebaseRemoteConfig singleton object:
-```
-window.FirebasePlugin.getInfo(function(info) {
-    // the status of the developer mode setting (true/false)
-    console.log(info.configSettings.developerModeEnabled);
-    // the timestamp (milliseconds since epoch) of the last successful fetch
-    console.log(info.fetchTimeMillis);
-    // the status of the most recent fetch attempt (int)
-    console.log(info.lastFetchStatus);
-}, function(error) {
-    console.error(error);
-});
-```
-
-### setConfigSettings (Android only)
-
-Change the settings for the FirebaseRemoteConfig object's operations:
-```
-var settings = {
-    developerModeEnabled: true
+#### Send notification. Payload example (REST API)
+Full documentation: https://firebase.google.com/docs/cloud-messaging/http-server-ref  
+Free testing server: https://cordova-plugin-fcm.appspot.com
+```javascript
+//POST: https://fcm.googleapis.com/fcm/send
+//HEADER: Content-Type: application/json
+//HEADER: Authorization: key=AIzaSy*******************
+{
+  "notification":{
+    "title":"Notification title",
+    "body":"Notification body",
+    "sound":"default",
+    "click_action":"FCM_PLUGIN_ACTIVITY",
+    "icon":"fcm_push_icon"
+  },
+  "data":{
+    "param1":"value1",
+    "param2":"value2"
+  },
+    "to":"/topics/topicExample",
+    "priority":"high",
+    "restricted_package_name":""
 }
-window.FirebasePlugin.setConfigSettings(settings);
+//sound: optional field if you want sound with the notification
+//click_action: must be present with the specified value for Android
+//icon: white icon resource name for Android >5.0
+//data: put any "param":"value" and retreive them in the JavaScript notification callback
+//to: device token or /topic/topicExample
+//priority: must be set to "high" for delivering notifications on closed iOS apps
+//restricted_package_name: optional field if you want to send only to a restricted app package (i.e: com.myapp.test)
 ```
+## How it works
+Send a push notification to a single device or topic.
+- 1.a Application is in foreground:
+ - The notification data is received in the JavaScript callback without notification bar message (this is the normal behaviour of mobile push notifications).
+- 1.b Application is in background or closed:
+ - The device displays the notification message in the device notification bar.
+ - If the user taps the notification, the application comes to foreground and the notification data is received in the JavaScript callback.
+ - If the user does not tap the notification but opens the applicacion, nothing happens until the notification is tapped.
 
-### setDefaults (Android only)
 
-Set defaults in the Remote Config:
+## License
 ```
-// define defaults
-var defaults = {
-    // map property name to value in Remote Config defaults
-    mLong: 1000,
-    mString: 'hello world',
-    mDouble: 3.14,
-    mBoolean: true,
-    // map "mBase64" to a Remote Config byte array represented by a Base64 string
-    // Note: the Base64 string is in an array in order to differentiate from a string config value
-    mBase64: ["SGVsbG8gV29ybGQ="],
-    // map "mBytes" to a Remote Config byte array represented by a numeric array
-    mBytes: [0xFF, 0x00]
-}
-// set defaults
-window.FirebasePlugin.setDefaults(defaults);
-// or, specify a namespace
-window.FirebasePlugin.setDefaults(defaults, "namespace");
+The MIT License
+
+Copyright (c) 2017 Felipe Echanique Torres (felipe.echanique in the gmail.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 ```
