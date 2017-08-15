@@ -62,6 +62,12 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 	</platform>
 
 	<platform name="ios">
+		<config-file parent="/resources" target="res/values/strings.xml">
+			<string name="google_app_id">acesso-ja</string>
+		</config-file>
+		<config-file parent="/resources" target="res/values/strings.xml">
+			<string name="google_api_key">AIzaSyA-3ehwP_OzbwgxtyvVK0uulu3DEr1B9lI</string>
+		</config-file>
 		<js-module name="FirebasePlugin" src="www/firebase.js">
 			<clobbers target="FirebasePlugin" />
 		</js-module>
