@@ -1,27 +1,31 @@
 {
   "project_info": {
-    "project_number": "919110169348",
-    "firebase_url": "https://acesso-ja.firebaseio.com",
-    "project_id": "acesso-ja",
-    "storage_bucket": "acesso-ja.appspot.com"
+    "project_number": "589133630601",
+    "firebase_url": "https://smart-key-3874d.firebaseio.com",
+    "project_id": "smart-key-3874d",
+    "storage_bucket": "smart-key-3874d.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:919110169348:android:b6c7fadf414cb488",
+        "mobilesdk_app_id": "1:589133630601:android:e08394e5543f38a5",
         "android_client_info": {
-          "package_name": "com.panorama.acessoja"
+          "package_name": "com.smartkey.android"
         }
       },
       "oauth_client": [
         {
-          "client_id": "919110169348-6akee1qs0ahrhuicjk675sst9eompd6j.apps.googleusercontent.com",
+          "client_id": "589133630601-g33v8mh5vmllvqelhpr6g1taqu49j7ui.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "589133630601-df9urjdsqcn3ddgevhoa4e9etjcj7uev.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD6V-_wNNPjZAOijLY2ZWbhki6tJZzPQhQ"
+          "current_key": "AIzaSyDBFFCshJ8ddDNNE4VyFwrTKVpeXR7XDpc"
         }
       ],
       "services": {
